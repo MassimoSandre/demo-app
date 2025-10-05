@@ -34,17 +34,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: 🧾 Preparazione SSH
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+      - uses: actions/checkout@v4
 
-      - name: 🚀 Deploy remoto
-        run: |
-          ssh -i ~/.ssh/id_rsa deploy@${{ secrets.VPS_HOST }} bash -s << 'EOF'
-            set -e
+      - name: Deploy to VPS (using password)
+        uses: appleboy/ssh-action@v0.1.6
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          password: ${{ secrets.VPS_PASSWORD }}
+          script: |
 
             # Parametri dinamici dal workflow
             REPO="git@github.com:${{ github.repository }}.git"
@@ -77,5 +75,4 @@ jobs:
             docker rm "$APP_NAME" >/dev/null 2>&1 || true
             docker run -d --name "$APP_NAME" -p 8080:80 "$APP_NAME"
 
-            echo "✅ Deploy completato con successo."
-          EOF
+            echo "Deploy completato con successo."
