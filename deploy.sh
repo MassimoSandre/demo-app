@@ -3,10 +3,6 @@ cd /home/massimo/apps/demo-app || exit
 
 newgrp docker
 
-# Aggiorna il codice
-git fetch origin main
-git reset --hard origin/main
-
 # Costruisci la nuova immagine Docker
 docker build -t demo-app .
 

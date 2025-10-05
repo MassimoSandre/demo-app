@@ -19,5 +19,7 @@ jobs:
           password: ${{ secrets.VPS_PASSWORD }}
           script: |
             cd /home/massimo/apps/demo-app  
+            git fetch origin main
+            git reset --hard origin/main
             chmod +x /home/massimo/apps/demo-app/deploy.sh
             ./deploy.sh
