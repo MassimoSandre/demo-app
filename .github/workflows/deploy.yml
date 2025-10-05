@@ -18,5 +18,6 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           password: ${{ secrets.VPS_PASSWORD }}
           script: |
-            cd /home/massimo/apps/demo-app
+            cd /home/massimo/apps/demo-app  
+            chmod +x /home/massimo/apps/demo-app/deploy.sh
             ./deploy.sh
