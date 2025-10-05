@@ -1,6 +1,30 @@
-# .github/workflows/deploy-password.yml
-name: Deploy via password
+# # .github/workflows/deploy-password.yml
+# name: Deploy via password
 
+# on:
+#   push:
+#     branches: [ main ]
+
+# jobs:
+#   deploy:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - uses: actions/checkout@v4
+
+#       - name: Deploy to VPS (using password)
+#         uses: appleboy/ssh-action@v0.1.6
+#         with:
+#           host: ${{ secrets.VPS_HOST }}
+#           username: ${{ secrets.VPS_USER }}
+#           password: ${{ secrets.VPS_PASSWORD }}
+#           script: |
+#             cd /home/massimo/apps/demo-app  
+#             git fetch origin main
+#             git reset --hard origin/main
+#             chmod +x /home/massimo/apps/demo-app/deploy.sh
+#             ./deploy.sh
+
+name: Deploy to VPS
 on:
   push:
     branches: [ main ]
@@ -8,18 +32,50 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
 
-      - name: Deploy to VPS (using password)
-        uses: appleboy/ssh-action@v0.1.6
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          password: ${{ secrets.VPS_PASSWORD }}
-          script: |
-            cd /home/massimo/apps/demo-app  
-            git fetch origin main
-            git reset --hard origin/main
-            chmod +x /home/massimo/apps/demo-app/deploy.sh
-            ./deploy.sh
+    steps:
+      - name: 🧾 Preparazione SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+
+      - name: 🚀 Deploy remoto
+        run: |
+          ssh -i ~/.ssh/id_rsa deploy@${{ secrets.VPS_HOST }} bash -s << 'EOF'
+            set -e
+
+            # Parametri dinamici dal workflow
+            REPO="git@github.com:${{ github.repository }}.git"
+            BRANCH="${{ github.ref_name }}"
+            APP_NAME="$(basename '${{ github.repository }}')"
+            BASE_DIR="/home/massimo/apps"
+            APP_DIR="$BASE_DIR/$APP_NAME"
+
+            echo "Clonando o aggiornando $REPO ($BRANCH)..."
+
+            mkdir -p "$BASE_DIR"
+
+            if [ ! -d "$APP_DIR/.git" ]; then
+              echo "→ Clonazione iniziale..."
+              git clone --branch "$BRANCH" "$REPO" "$APP_DIR"
+            else
+              echo "→ Aggiornamento esistente..."
+              cd "$APP_DIR"
+              git fetch origin "$BRANCH"
+              git reset --hard "origin/$BRANCH"
+            fi
+
+            cd "$APP_DIR"
+
+            echo "→ Costruzione Docker..."
+            docker build -t "$APP_NAME" .
+
+            echo "→ Riavvio container..."
+            docker stop "$APP_NAME" >/dev/null 2>&1 || true
+            docker rm "$APP_NAME" >/dev/null 2>&1 || true
+            docker run -d --name "$APP_NAME" -p 8080:80 "$APP_NAME"
+
+            echo "✅ Deploy completato con successo."
+          EOF
