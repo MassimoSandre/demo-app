@@ -1,11 +1,14 @@
-# Dockerfile
-FROM node:20-alpine
+# Build stage
+FROM node:20-alpine as build
 
 WORKDIR /app
+COPY client/package.json client/package-lock.json ./
+RUN npm install
+COPY client/ ./
+RUN npm run build
 
-COPY package.json ./
-COPY app.js ./
-
+# Production stage
+FROM nginx:alpine
+COPY --from=build /app/build /usr/share/nginx/html
 EXPOSE 80
-
-CMD ["node", "app.js"]
+CMD ["nginx", "-g", "daemon off;"]
