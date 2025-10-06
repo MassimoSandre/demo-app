@@ -42,11 +42,13 @@ jobs:
             cd "$APP_DIR"
 
             echo "→ Costruzione Docker..."
-            docker build -t "$APP_NAME" .
+            # docker build -t "$APP_NAME" .
 
-            echo "→ Riavvio container..."
-            docker stop "$APP_NAME" >/dev/null 2>&1 || true
-            docker rm "$APP_NAME" >/dev/null 2>&1 || true
-            docker run -d --name "$APP_NAME" -p 8080:80 "$APP_NAME"
+            # echo "→ Riavvio container..."
+            # docker stop "$APP_NAME" >/dev/null 2>&1 || true
+            # docker rm "$APP_NAME" >/dev/null 2>&1 || true
+            # docker run -d --name "$APP_NAME" -p 8080:80 "$APP_NAME"
 
-            echo "Deploy completato con successo."
+            # echo "Deploy completato con successo."
+            docker compose down --remove-orphans && docker compose up -d --build
+

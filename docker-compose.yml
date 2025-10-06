@@ -1,0 +1,12 @@
+version: "3.8"
+
+services:
+  frontend:
+    build:
+      context: .              # directory dove si trova il Dockerfile
+      dockerfile: Dockerfile  # opzionale, se si chiama "Dockerfile" puoi ometterla
+    image: "demo-app:latest"  # nome dell’immagine dopo la build
+    container_name: "demo-app"
+    ports:
+      - "8080:80"
+    restart: unless-stopped
