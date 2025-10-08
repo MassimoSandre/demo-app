@@ -6,11 +6,11 @@ function App() {
 
   return (
     <div style={{textAlign: 'center', marginTop: '50px'}}>
-      <h1>Massimo's Click counter:</h1>
+      <h1>Click Counter:</h1>
       <p>Click counter:</p>
       <button onClick={() => setCount(count + 1)}>Increment</button>
       <p>Count: {count}</p>
-      <p style={{fontSize: '12px', color: 'gray'}}>by Massimo Sandretti</p>
+      <p style={{fontSize: '12px', color: 'gray'}}>by Massimo A. Sandretti</p>
     </div>
   );
 }
